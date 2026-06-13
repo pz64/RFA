@@ -1,5 +1,7 @@
 package com.pz64.rfa
 
+import androidx.core.net.toUri
+
 object Constants {
     object RTLSDR {
         val ids = setOf( // from https://github.com/osmocom/rtl-sdr/blob/master/rtl-sdr.rules
@@ -11,5 +13,11 @@ object Constants {
             Pair(0x1b80, 0xd3a8), Pair(0x1b80, 0xd3af), Pair(0x1b80, 0xd3b0), Pair(0x1d19, 0x1101), Pair(0x1d19, 0x1102), Pair(0x1d19, 0x1103),
             Pair(0x1d19, 0x1104), Pair(0x1f4d, 0xa803), Pair(0x1f4d, 0xb803), Pair(0x1f4d, 0xc803), Pair(0x1f4d, 0xd286), Pair(0x1f4d, 0xd803)
         )
+
+        object DriverApp {
+            const val packageName = "marto.rtl_tcp_andro"
+            const val className = "com.sdrtouch.rtlsdr.DeviceOpenActivity"
+            val serverPath = "iqsrc://-a 127.0.0.1  -p 1234 -n 1 -T 0".toUri()
+        }
     }
 }

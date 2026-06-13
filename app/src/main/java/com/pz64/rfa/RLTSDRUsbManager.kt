@@ -1,4 +1,4 @@
-package com.pz64.rfa.receivers
+package com.pz64.rfa
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -11,14 +11,15 @@ import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import com.pz64.rfa.Constants
-import com.pz64.rfa.MainActivity.Companion.TAG
+import com.pz64.rfa.ui.main.RFActivity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
-class USBObserver @Inject constructor(
+class RLTSDRUsbManager @Inject constructor(
     @ApplicationContext val context: Context
 ): DefaultLifecycleObserver, BroadcastReceiver()   {
+
+    var onUsbConnected = {}
 
     override fun onReceive(context: Context, intent: Intent) {
         if(intent.action == UsbManager.ACTION_USB_DEVICE_ATTACHED) {
@@ -30,15 +31,13 @@ class USBObserver @Inject constructor(
                 intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
             }
             device?.let {
-                Log.d(TAG, "Device attached: ${it.deviceName} (vendor: ${device.vendorId}, product: ${device.productId}, name: ${device.manufacturerName}|${device.productName})")
+                Log.d(RFActivity.TAG, "Device attached: ${it.deviceName} (vendor: ${device.vendorId}, product: ${device.productId}, name: ${device.manufacturerName}|${device.productName})")
                 if(Pair(it.vendorId, it.productId) in Constants.RTLSDR.ids) {
                     Toast.makeText( context, "RTL-SDR Device '${device.productName}' attached.", Toast.LENGTH_SHORT).show()
                     if (device.vendorId == 0x0bda && device.productId == 0x2838 && device.productName == "Blog V4") {
-//                            Log.i(TAG, "usbBroadcastReceiver:onReceive: RTL-SDR Blog V4 attached!")
-//                            appStateRepository.rtlsdrBlogV4connected.set(true)
+                            Log.i(RFActivity.TAG, "usbBroadcastReceiver:onReceive: RTL-SDR Blog V4 attached!")
                     }
-//                        if (!appStateRepository.analyzerRunning.value)
-//                            appStateRepository.sourceType.set(SourceType.RTLSDR)
+                    onUsbConnected()
                 }
             }
         } else if(intent.action == UsbManager.ACTION_USB_DEVICE_DETACHED) {
@@ -50,20 +49,37 @@ class USBObserver @Inject constructor(
                 intent.getParcelableExtra<UsbDevice>(UsbManager.EXTRA_DEVICE)
             }
             device?.let {
-                Log.d(TAG, "usbBroadcastReceiver:onReceive: Device detached (${device.vendorId}:${device.productId} - ${device.productName})")
+                Log.d(RFActivity.TAG, "usbBroadcastReceiver:onReceive: Device detached (${device.vendorId}:${device.productId} - ${device.productName})")
                 if (device.vendorId == 0x0bda && device.productId == 0x2838 && device.productName == "Blog V4") {
-                    Log.i(TAG, "usbBroadcastReceiver:onReceive: RTL-SDR Blog V4 detached!")
-                    //appStateRepository.rtlsdrBlogV4connected.set(false)
+                    Log.i(RFActivity.TAG, "usbBroadcastReceiver:onReceive: RTL-SDR Blog V4 detached!")
                 }
             }
         }
     }
 
+    fun isRtlSdrConnected(): Boolean {
+        val usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager
+        // deviceList is a Snapshot of currently connected devices
+        return usbManager.deviceList.values.any { device ->
+            Pair(device.vendorId, device.productId) in Constants.RTLSDR.ids
+        }
+    }
+
+    override fun onCreate(owner: LifecycleOwner) {
+        super.onCreate(owner)
+        if (isRtlSdrConnected()) {
+            onUsbConnected()
+        }
+    }
+
     override fun onStart(owner: LifecycleOwner) {
+
         val filter = IntentFilter()
         filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
         context.registerReceiver(this, filter)
+
+
     }
 
     override fun onStop(owner: LifecycleOwner) {
