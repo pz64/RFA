@@ -1,9 +1,10 @@
-package com.pz64.rfa.ui.main
+package com.pz64.rfa
 
 import android.Manifest
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -15,10 +16,15 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.core.content.ContextCompat
-import com.pz64.rfa.AnalyzerService
-import com.pz64.rfa.Constants
-import com.pz64.rfa.RLTSDRUsbManager
+import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.ui.NavDisplay
+import com.pz64.rfa.ui.main.MainScreenRoute
+import com.pz64.rfa.ui.navigation.NavDestination
+import com.pz64.rfa.ui.theme.RFATheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -50,6 +56,7 @@ class RFActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.colorMode = ActivityInfo.COLOR_MODE_HDR
 
         setupRtlsdrDriverLauncher()
 
@@ -65,6 +72,7 @@ class RFActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
+            RFAApp()
         }
     }
 
@@ -83,7 +91,10 @@ class RFActivity : ComponentActivity() {
     private fun handleNotificationPermission(onGranted: () -> Unit) {
         val permission = Manifest.permission.POST_NOTIFICATIONS
         val needsRequest = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED
+                ContextCompat.checkSelfPermission(
+                    this,
+                    permission
+                ) != PackageManager.PERMISSION_GRANTED
 
         if (needsRequest) {
             registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
@@ -130,5 +141,29 @@ class RFActivity : ComponentActivity() {
 
     companion object {
         const val TAG = "MainActivity"
+    }
+}
+
+
+@Composable
+fun RFAApp() {
+    RFATheme {
+        val backStack = remember { mutableStateListOf<NavDestination>(NavDestination.Main) }
+
+        NavDisplay(
+            backStack = backStack,
+            onBack = { backStack.removeLastOrNull() },
+            entryProvider = { key ->
+                when (key) {
+                    NavDestination.Main -> NavEntry(key) {
+                        MainScreenRoute()
+                    }
+
+                    NavDestination.Settings -> NavEntry(key) {
+                        // SettingsScreen()
+                    }
+                }
+            }
+        )
     }
 }

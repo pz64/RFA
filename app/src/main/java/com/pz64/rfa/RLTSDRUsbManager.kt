@@ -11,7 +11,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import com.pz64.rfa.ui.main.RFActivity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
