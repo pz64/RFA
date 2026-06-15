@@ -2,7 +2,7 @@ package com.pz64.rfa.ui.main
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
-import com.pz64.rfa.data.ChannelData
+import com.pz64.rfa.data.models.ChannelData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update

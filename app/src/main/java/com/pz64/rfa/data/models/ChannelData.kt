@@ -1,4 +1,4 @@
-package com.pz64.rfa.data
+package com.pz64.rfa.data.models
 
 import java.util.UUID
 

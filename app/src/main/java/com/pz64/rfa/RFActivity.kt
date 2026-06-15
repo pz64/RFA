@@ -113,6 +113,7 @@ class RFActivity : ComponentActivity() {
 
     private fun unbindAnalyzerService() {
         unbindService(serviceConnection)
+        stopService(Intent(this, AnalyzerService::class.java))
     }
 
     private fun setupRtlsdrDriverLauncher() {

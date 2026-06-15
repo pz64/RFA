@@ -22,7 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pz64.rfa.R
-import com.pz64.rfa.data.ChannelData
+import com.pz64.rfa.data.models.ChannelData
 import com.pz64.rfa.ui.theme.RFATheme
 import com.pz64.rfa.ui.theme.elements.RFButton
 import com.pz64.rfa.ui.theme.elements.RFText

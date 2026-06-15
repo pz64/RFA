@@ -24,7 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.pz64.rfa.data.ChannelData
+import com.pz64.rfa.data.models.ChannelData
 import com.pz64.rfa.ui.theme.RFATheme
 import com.pz64.rfa.ui.theme.SevenSegmentFont
 import com.pz64.rfa.ui.theme.elements.RFText

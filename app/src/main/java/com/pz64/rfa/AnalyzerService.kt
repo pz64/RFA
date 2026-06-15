@@ -46,12 +46,6 @@ class AnalyzerService: Service() {
         return START_NOT_STICKY
     }
 
-    private fun stopForegroundService() {
-        Log.d(TAG, "stopForegroundService: removing notification.")
-        stopForeground(STOP_FOREGROUND_REMOVE) // This removes the notification
-        stopSelf() // remove the 'started' state so the service stops when unbound
-    }
-
     private fun startForegroundService() {
         val notification = createNotification()
         Log.d(TAG, "startForegroundService: Moving service to foreground.")
