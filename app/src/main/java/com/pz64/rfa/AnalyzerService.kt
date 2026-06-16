@@ -14,6 +14,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class AnalyzerService: Service() {
@@ -22,6 +23,9 @@ class AnalyzerService: Service() {
     private var isBound = false
 
     private val lifecycleScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
+
+    @Inject
+    lateinit var rtlsdrUsbManager: RLTSDRUsbManager
 
     override fun onBind(p0: Intent): IBinder {
         Log.i(TAG, "onBind: Service bound")

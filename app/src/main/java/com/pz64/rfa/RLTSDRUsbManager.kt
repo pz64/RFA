@@ -9,19 +9,23 @@ import android.hardware.usb.UsbManager
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class RLTSDRUsbManager @Inject constructor(
     @ApplicationContext val context: Context
-): DefaultLifecycleObserver, BroadcastReceiver()   {
+) : BroadcastReceiver() {
 
-    var onUsbConnected = {}
+
+    private val _isConnected = MutableStateFlow(isRtlSdrConnected())
+    val isConnected = _isConnected.asStateFlow()
 
     override fun onReceive(context: Context, intent: Intent) {
-        if(intent.action == UsbManager.ACTION_USB_DEVICE_ATTACHED) {
+        if (intent.action == UsbManager.ACTION_USB_DEVICE_ATTACHED) {
             val device = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice::class.java)
             } else {
@@ -29,17 +33,27 @@ class RLTSDRUsbManager @Inject constructor(
                 @Suppress("DEPRECATION")
                 intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
             }
-            device?.let {
-                Log.d(RFActivity.TAG, "Device attached: ${it.deviceName} (vendor: ${device.vendorId}, product: ${device.productId}, name: ${device.manufacturerName}|${device.productName})")
-                if(Pair(it.vendorId, it.productId) in Constants.RTLSDR.ids) {
-                    Toast.makeText( context, "RTL-SDR Device '${device.productName}' attached.", Toast.LENGTH_SHORT).show()
+            device?.let { device ->
+                Log.d(
+                    RFActivity.TAG,
+                    "Device attached: ${device.deviceName} (vendor: ${device.vendorId}, product: ${device.productId}, name: ${device.manufacturerName}|${device.productName})"
+                )
+                if (Pair(device.vendorId, device.productId) in Constants.RTLSDR.ids) {
+                    Toast.makeText(
+                        context,
+                        "RTL-SDR Device '${device.productName}' attached.",
+                        Toast.LENGTH_SHORT
+                    ).show()
                     if (device.vendorId == 0x0bda && device.productId == 0x2838 && device.productName == "Blog V4") {
-                            Log.i(RFActivity.TAG, "usbBroadcastReceiver:onReceive: RTL-SDR Blog V4 attached!")
+                        Log.i(
+                            RFActivity.TAG,
+                            "usbBroadcastReceiver:onReceive: RTL-SDR Blog V4 attached!"
+                        )
                     }
-                    onUsbConnected()
+                    _isConnected.value = true
                 }
             }
-        } else if(intent.action == UsbManager.ACTION_USB_DEVICE_DETACHED) {
+        } else if (intent.action == UsbManager.ACTION_USB_DEVICE_DETACHED) {
             val device = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice::class.java)
             } else {
@@ -48,9 +62,16 @@ class RLTSDRUsbManager @Inject constructor(
                 intent.getParcelableExtra<UsbDevice>(UsbManager.EXTRA_DEVICE)
             }
             device?.let {
-                Log.d(RFActivity.TAG, "usbBroadcastReceiver:onReceive: Device detached (${device.vendorId}:${device.productId} - ${device.productName})")
+                _isConnected.value = false
+                Log.d(
+                    RFActivity.TAG,
+                    "usbBroadcastReceiver:onReceive: Device detached (${device.vendorId}:${device.productId} - ${device.productName})"
+                )
                 if (device.vendorId == 0x0bda && device.productId == 0x2838 && device.productName == "Blog V4") {
-                    Log.i(RFActivity.TAG, "usbBroadcastReceiver:onReceive: RTL-SDR Blog V4 detached!")
+                    Log.i(
+                        RFActivity.TAG,
+                        "usbBroadcastReceiver:onReceive: RTL-SDR Blog V4 detached!"
+                    )
                 }
             }
         }
@@ -64,24 +85,11 @@ class RLTSDRUsbManager @Inject constructor(
         }
     }
 
-    override fun onCreate(owner: LifecycleOwner) {
-        super.onCreate(owner)
-        if (isRtlSdrConnected()) {
-            onUsbConnected()
-        }
-    }
 
-    override fun onStart(owner: LifecycleOwner) {
-
+    init {
         val filter = IntentFilter()
         filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
         context.registerReceiver(this, filter)
-
-
-    }
-
-    override fun onStop(owner: LifecycleOwner) {
-        context.unregisterReceiver(this)
     }
 }

@@ -24,4 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "RFA"
 include(":app")
- 
+include(":nativedsp")

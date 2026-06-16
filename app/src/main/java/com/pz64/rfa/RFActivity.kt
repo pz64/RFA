@@ -20,21 +20,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
 import com.pz64.rfa.ui.main.MainScreenRoute
 import com.pz64.rfa.ui.navigation.NavDestination
 import com.pz64.rfa.ui.theme.RFATheme
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class RFActivity : ComponentActivity() {
 
-    private val rfaViewModel: RFAViewModel by viewModels()
+    private val viewModel: RFAViewModel by viewModels()
 
-    @Inject
-    lateinit var rtlsdrUsbManager: RLTSDRUsbManager
+
 
     private lateinit var rtlsdrDriverLauncher: ActivityResultLauncher<Intent>
 
@@ -60,13 +60,17 @@ class RFActivity : ComponentActivity() {
 
         setupRtlsdrDriverLauncher()
 
-        handleNotificationPermission(onGranted = ::bindAnalyzerService)
 
-        lifecycle.addObserver(rtlsdrUsbManager)
 
-        rtlsdrUsbManager.onUsbConnected = {
-            Log.i(TAG, "RTLSDR usb connected")
-            startConnectionToDriver()
+        lifecycleScope.launch {
+            viewModel.connectionState.collect { isConnected ->
+                if (isConnected) {
+                    Log.i(TAG, "RTLSDR usb connected")
+                    startConnectionToDriver()
+                } else {
+                    Log.i(TAG, "RTLSDR usb disconnected")
+                }
+            }
         }
 
 
@@ -121,8 +125,12 @@ class RFActivity : ComponentActivity() {
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == RESULT_OK) {
                     Log.i(TAG, "RTL-SDR Driver connection successful")
+                    handleNotificationPermission(onGranted = ::bindAnalyzerService)
+                    val supportedCommands = result.data?.getIntArrayExtra("supportedTcpCommands")
+                    Log.i(TAG, supportedCommands?.joinToString(",") ?: "null")
                 } else {
-                    Log.i(TAG, "Function… connection failed.")
+                    val error = result.data?.getStringExtra("detailed_exception_message")
+                    Log.i(TAG, "RTL-SDR Driver connection failed: $error")
                 }
             }
 
