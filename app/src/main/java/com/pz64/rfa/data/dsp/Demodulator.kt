@@ -136,7 +136,7 @@ class Demodulator(
     /**
      * Main processing loop. Suspend until cancelled.
      */
-    suspend fun run() = coroutineScope {
+    suspend fun start() = coroutineScope {
         var inputSamples: SamplePacket?
         var audioBuffer: SamplePacket?
 

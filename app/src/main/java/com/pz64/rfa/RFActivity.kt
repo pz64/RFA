@@ -20,7 +20,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
 import com.pz64.rfa.ui.main.MainScreenRoute
@@ -63,12 +65,14 @@ class RFActivity : ComponentActivity() {
 
 
         lifecycleScope.launch {
-            viewModel.connectionState.collect { isConnected ->
-                if (isConnected) {
-                    Log.i(TAG, "RTLSDR usb connected")
-                    startConnectionToDriver()
-                } else {
-                    Log.i(TAG, "RTLSDR usb disconnected")
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.connectionState.collect { isConnected ->
+                    if (isConnected) {
+                        Log.i(TAG, "RTLSDR usb connected")
+                        startConnectionToDriver()
+                    } else {
+                        Log.i(TAG, "RTLSDR usb disconnected")
+                    }
                 }
             }
         }
@@ -142,7 +146,7 @@ class RFActivity : ComponentActivity() {
                 Constants.RTLSDR.DriverApp.packageName,
                 Constants.RTLSDR.DriverApp.className
             )
-            data = Constants.RTLSDR.DriverApp.serverPath
+            data = Constants.RTLSDR.DriverApp.url
         }
         rtlsdrDriverLauncher.launch(intent)
     }

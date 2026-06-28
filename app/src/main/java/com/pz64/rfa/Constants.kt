@@ -1,6 +1,7 @@
 package com.pz64.rfa
 
 import androidx.core.net.toUri
+import com.pz64.rfa.data.DemodulationMode
 
 object Constants {
     object RTLSDR {
@@ -14,10 +15,19 @@ object Constants {
             Pair(0x1d19, 0x1104), Pair(0x1f4d, 0xa803), Pair(0x1f4d, 0xb803), Pair(0x1f4d, 0xc803), Pair(0x1f4d, 0xd286), Pair(0x1f4d, 0xd803)
         )
 
+        val defaultFrequency = 97000000L
+        val supportedSampleRates = listOf(1000000, 2000000, 2500000)
+
+        val defaultDemodulationMode = DemodulationMode.WFM
+
+
         object DriverApp {
             const val packageName = "marto.rtl_tcp_andro"
             const val className = "com.sdrtouch.rtlsdr.DeviceOpenActivity"
-            val serverPath = "iqsrc://-a 127.0.0.1  -p 1234 -n 1 -T 0".toUri()
+
+            const val path = "127.0.0.1"
+            const val port = 1234
+            val url = "iqsrc://-a $path  -p $port -n 1 -T 0".toUri()
         }
     }
 }
